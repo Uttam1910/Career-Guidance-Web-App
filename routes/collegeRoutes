@@ -1,7 +1,12 @@
 const express = require('express');
-const { getColleges } = require('../controllers/collegeController');
+const { addCollege, getColleges } = require('../controllers/collegeController');
 const router = express.Router();
+const auth = require('../middleware/auth'); // Auth middleware to protect routes
 
-router.get('/', getColleges); // Get all colleges
+// Add a new college (protected route)
+router.post('/add', auth, addCollege);
+
+// Get a list of colleges (open to all)
+router.get('/', getColleges);
 
 module.exports = router;

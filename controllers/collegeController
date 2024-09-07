@@ -1,9 +1,38 @@
 const College = require('../models/College');
 
-// Get all colleges
-exports.getColleges = async (req, res) => {
+// Add a new college
+exports.addCollege = async (req, res) => {
+  const { name, location, eligibility, fees } = req.body;
+
   try {
-    const colleges = await College.find();
+    const college = new College({
+      name,
+      location,
+      eligibility,
+      fees,
+    });
+
+    await college.save();
+    res.status(201).json({ message: 'College added successfully', college });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all colleges (with optional filters)
+exports.getColleges = async (req, res) => {
+  const { location, eligibility, minFees, maxFees } = req.query;
+  let filter = {};
+
+  // Apply filters if provided
+  if (location) filter.location = location;
+  if (eligibility) filter.eligibility = eligibility;
+  if (minFees && maxFees) {
+    filter.fees = { $gte: minFees, $lte: maxFees };
+  }
+
+  try {
+    const colleges = await College.find(filter);
     res.json(colleges);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
