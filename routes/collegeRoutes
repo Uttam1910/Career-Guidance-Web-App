@@ -1,0 +1,7 @@
+const express = require('express');
+const { getColleges } = require('../controllers/collegeController');
+const router = express.Router();
+
+router.get('/', getColleges); // Get all colleges
+
+module.exports = router;
