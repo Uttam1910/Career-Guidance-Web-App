@@ -9,14 +9,13 @@ const { errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 
-// Initialize app
 const app = express();
 
 // Middleware
-app.use(helmet()); // Security
-app.use(cors());   // Enable CORS
-app.use(morgan('dev')); // Logger
-app.use(bodyParser.json()); // Parse incoming requests
+app.use(helmet());
+app.use(cors());
+app.use(morgan('dev'));
+app.use(bodyParser.json());
 
 // Routes
 app.use('/api/auth', authRoutes);

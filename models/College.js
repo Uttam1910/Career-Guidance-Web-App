@@ -9,15 +9,16 @@ const collegeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  tuition: {
+  eligibility: {
+    type: String,
+    required: true,
+  },
+  fees: {
     type: Number,
     required: true,
   },
-  housing: {
-    type: Boolean,
-    default: false,
-  },
-  // Other fields like placements, rankings, etc.
-});
+  // Additional fields such as courses, placement details, etc.
+}, { timestamps: true });
 
-module.exports = mongoose.model('College', collegeSchema);
+const College = mongoose.model('College', collegeSchema);
+module.exports = College;
