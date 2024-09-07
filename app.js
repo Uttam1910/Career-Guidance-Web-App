@@ -5,9 +5,12 @@ const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const { errorHandler } = require('./middleware/errorHandler');
 
+
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
+const testRoutes = require('./routes/testRoutes');
+
 
 const app = express();
 
@@ -20,6 +23,7 @@ app.use(bodyParser.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
+app.use('/api/tests', testRoutes);
 
 // Error handler middleware
 app.use(errorHandler);
