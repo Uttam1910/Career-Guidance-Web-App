@@ -11,6 +11,12 @@ const authRoutes = require('./routes/authRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const testRoutes = require('./routes/testRoutes');
 
+// const adminRoutes = require('./routes/adminRoutes');
+// const userRoutes = require('./routes/userRoutes');
+
+// Use admin and user routes
+
+
 
 const app = express();
 
@@ -24,6 +30,9 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/tests', testRoutes);
+
+// app.use('/api/admin', adminRoutes);
+// app.use('/api/user', userRoutes);
 
 // Error handler middleware
 app.use(errorHandler);
