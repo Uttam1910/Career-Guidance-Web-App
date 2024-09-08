@@ -1,41 +1,71 @@
-const TestResult = require('../models/TestResult');
+const Test = require('../models/Test');
 
-// Provide test questions (mock data for simplicity)
-exports.takeTest = async (req, res) => {
-  try {
-    const questions = [
-      { id: 1, type: 'verbal', question: 'What is the synonym of "happy"?' },
-      { id: 2, type: 'quantitative', question: 'What is 7 + 8?' },
-      { id: 3, type: 'general', question: 'Which planet is known as the Red Planet?' }
-    ];
-
-    res.json({ questions });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Submit test results
-exports.submitTest = async (req, res) => {
-  const { answers } = req.body;
+// Create a new test
+const createTest = async (req, res) => {
+  const { name, questions } = req.body;
 
   try {
-    const testResult = new TestResult({
-      student: req.user.id,
-      answers,
-      score: calculateScore(answers)
+    const test = await Test.create({
+      name,
+      questions,
     });
 
-    await testResult.save();
-    res.status(201).json({ message: 'Test submitted successfully', testResult });
+    res.status(201).json(test);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(400).json({ message: error.message });
   }
 };
 
-// Example scoring function
-const calculateScore = (answers) => {
-  return answers.reduce((score, answer) => {
-    return score + 1;
-  }, 0);
+// Get all tests
+const getAllTests = async (req, res) => {
+  try {
+    const tests = await Test.find();
+    res.status(200).json(tests);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Get a single test by ID
+const getTestById = async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.id);
+    if (!test) {
+      return res.status(404).json({ message: 'Test not found' });
+    }
+    res.status(200).json(test);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Submit test answers and get results
+const submitTest = async (req, res) => {
+  const { testId, answers } = req.body;
+
+  try {
+    const test = await Test.findById(testId);
+    if (!test) {
+      return res.status(404).json({ message: 'Test not found' });
+    }
+
+    let score = 0;
+    test.questions.forEach((question, index) => {
+      const correctOption = question.options.find(option => option.isCorrect);
+      if (correctOption && answers[index] === correctOption.optionText) {
+        score++;
+      }
+    });
+
+    res.status(200).json({ score });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createTest,
+  getAllTests,
+  getTestById,
+  submitTest,
 };

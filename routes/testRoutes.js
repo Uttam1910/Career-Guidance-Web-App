@@ -1,12 +1,22 @@
 const express = require('express');
-const { takeTest, submitTest } = require('../controllers/testController');
+const {
+  createTest,
+  getAllTests,
+  getTestById,
+  submitTest,
+} = require('../controllers/testController');
 const router = express.Router();
-const auth = require('../middleware/auth'); // Auth middleware to protect routes
 
-// Provide test questions (open to all)
-router.get('/take', takeTest);
+// Create a new test
+router.post('/', createTest);
 
-// Submit the test results (protected route)
-router.post('/submit', auth, submitTest);
+// Get all tests
+router.get('/', getAllTests);
+
+// Get a single test by ID
+router.get('/:id', getTestById);
+
+// Submit test answers and get results
+router.post('/submit', submitTest);
 
 module.exports = router;
