@@ -25,12 +25,12 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
+app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/tests', testRoutes);
-
 // app.use('/api/admin', adminRoutes);
 // app.use('/api/user', userRoutes);
 

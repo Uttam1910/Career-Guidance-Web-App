@@ -1,21 +1,21 @@
 const Test = require('../models/Test');
 
-// Create a new test
+// Controller function to create a test
 const createTest = async (req, res) => {
   const { name, questions } = req.body;
 
   try {
-    const test = await Test.create({
+    const test = new Test({
       name,
-      questions,
+      questions
     });
+    await test.save();
 
-    res.status(201).json(test);
+    res.status(201).json({ message: 'Test created successfully', test });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: 'Error creating test', error });
   }
 };
-
 // Get all tests
 const getAllTests = async (req, res) => {
   try {
