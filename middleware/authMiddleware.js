@@ -11,11 +11,11 @@ const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select('-password');
       next();
     } catch (error) {
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
   if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 
@@ -27,5 +27,6 @@ const adminOnly = (req, res, next) => {
     res.status(403).json({ message: 'Not authorized as admin' });
   }
 };
+
 
 module.exports = { protect, adminOnly };
