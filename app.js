@@ -31,7 +31,8 @@ app.use(express.json());
 // app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/tests', testRoutes);
-app.use('/api/students', studentRoutes);
+// app.use('/api/students', studentRoutes);
+app.use('/api/users', studentRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

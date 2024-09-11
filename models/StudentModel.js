@@ -1,59 +1,62 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');  // Optional: For additional validation
 
-// Student Schema
-const studentSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  careerSelection: {
-    type: String,
-    enum: ['Engineering', 'Management', 'Medical', 'Law', 'Arts', 'Commerce', 'Others'],
-    default: 'Engineering',  // default to 'Engineering' but can be selected
-  },
-  locationPreference: {
-    type: String,
-    enum: ['India', 'Abroad'],
-    default: 'India',  // default to 'India'
-  },
-  testResult: {
-    aptitude: {
-      verbal: { type: Number, default: 0 },
-      quantitative: { type: Number, default: 0 },
-      generalKnowledge: { type: Number, default: 0 },
-    },
-    totalScore: { type: Number, default: 0 },
-    completed: { type: Boolean, default: false },
-  },
-}, { timestamps: true });
-
-// Hash password before saving the student document
-studentSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    return next();
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+// User Schema
+const userSchema = new mongoose.Schema({
+   name: {
+      type: String,
+      required: [true, 'Name is required'],
+      trim: true,
+      maxlength: [100, 'Name cannot exceed 100 characters']
+   },
+   email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      validate: [validator.isEmail, 'Please enter a valid email']
+   },
+   password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [6, 'Password must be at least 6 characters long']
+   },
+   role: {
+      type: String,
+      enum: ['student', 'admin'],
+      default: 'student'
+   },
+   // Additional fields for the future
+   profilePicture: {
+      type: String,
+      trim: true
+   },
+   createdAt: {
+      type: Date,
+      default: Date.now
+   }
 });
 
-// Method to compare passwords
-studentSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+// Hash password before saving the user
+userSchema.pre('save', async function(next) {
+   if (!this.isModified('password')) return next();
+   
+   try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      next();
+   } catch (error) {
+      next(error);
+   }
+});
+
+// Compare password
+userSchema.methods.matchPassword = async function(enteredPassword) {
+   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('Student', studentSchema);
+// Create and export the User model
+const User = mongoose.model('User', userSchema);
+module.exports = User;

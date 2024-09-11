@@ -1,160 +1,139 @@
-const Student = require('../models/StudentModel');
+
 
 const jwt = require('jsonwebtoken');
+const httpErrors = require('http-errors');
+const User = require('../models/StudentModel');
 
-// Generate JWT token
+// Generate JWT Token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
+   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
-// Student Registration
-exports.registerStudent = async (req, res) => {
-  const { name, email, password, phone } = req.body;
+// @desc    Register a new user
+// @route   POST /api/users/register
+// @access  Public
+const registerUser = async (req, res, next) => {
+   const { name, email, password, role } = req.body;
 
+   try {
+      // Check if the user already exists
+      const userExists = await User.findOne({ email });
+
+      if (userExists) {
+         return next(httpErrors(400, 'User already exists'));
+      }
+
+      // Create a new user
+      const user = await User.create({ name, email, password, role });
+
+      res.status(201).json({
+         _id: user._id,
+         name: user.name,
+         email: user.email,
+         role: user.role,
+         token: generateToken(user._id),
+      });
+   } catch (error) {
+      next(httpErrors(500, 'Server error'));
+   }
+};
+
+// @desc    Login user
+// @route   POST /api/users/login
+// @access  Public
+const loginUser = async (req, res, next) => {
+   const { email, password } = req.body;
+
+   try {
+      // Find user by email
+      const user = await User.findOne({ email });
+
+      if (!user || !(await user.matchPassword(password))) {
+         return next(httpErrors(401, 'Invalid email or password'));
+      }
+
+      res.json({
+         _id: user._id,
+         name: user.name,
+         email: user.email,
+         role: user.role,
+         token: generateToken(user._id),
+      });
+   } catch (error) {
+      next(httpErrors(500, 'Server error'));
+   }
+};
+
+// @desc    Get user profile
+// @route   GET /api/users/profile
+// @access  Private (requires authentication)
+const getUserProfile = async (req, res, next) => {
+   try {
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+         return next(httpErrors(404, 'User not found'));
+      }
+
+      res.json({
+         _id: user._id,
+         name: user.name,
+         email: user.email,
+         role: user.role,
+      });
+   } catch (error) {
+      next(httpErrors(500, 'Server error'));
+   }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private (requires authentication)
+const updateUserProfile = async (req, res, next) => {
+   const { name, email, password } = req.body;
+
+   try {
+      // Find user by ID and update fields
+      const user = await User.findById(req.user.id);
+
+      if (!user) {
+         return next(httpErrors(404, 'User not found'));
+      }
+
+      if (name) user.name = name;
+      if (email) user.email = email;
+      if (password) user.password = password;
+
+      await user.save();
+
+      res.json({
+         _id: user._id,
+         name: user.name,
+         email: user.email,
+         role: user.role,
+      });
+   } catch (error) {
+      next(httpErrors(500, 'Server error'));
+   }
+};
+
+// @desc    Logout user
+// @route   POST /api/users/logout
+// @access  Private (requires authentication)
+const logoutUser = async (req, res, next) => {
   try {
-    const studentExists = await Student.findOne({ email });
-    if (studentExists) {
-      return res.status(400).json({ message: 'Student already exists' });
-    }
-
-    const student = await Student.create({
-      name,
-      email,
-      password,
-      phone,
-    });
-
-    const token = generateToken(student._id);
-
-    res.status(201).json({
-      message: 'Student registered successfully',
-      token,
-      student: {
-        id: student._id,
-        name: student.name,
-        email: student.email,
-      },
-    });
+     // Invalidate the token by client-side logic (e.g., deleting the token)
+     res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+     next(httpErrors(500, 'Server error'));
   }
 };
 
-// Student Login
-exports.loginStudent = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const student = await Student.findOne({ email });
-
-    if (!student || !(await student.matchPassword(password))) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
-
-    const token = generateToken(student._id);
-
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      student: {
-        id: student._id,
-        name: student.name,
-        email: student.email,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Get student profile (for after login)
-exports.getStudentProfile = async (req, res) => {
-  try {
-    const student = await Student.findById(req.user.id).select('-password');
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-    res.status(200).json(student);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Update career selection
-exports.updateCareerSelection = async (req, res) => {
-  const { careerSelection } = req.body;
-
-  try {
-    const student = await Student.findById(req.user.id);
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    student.careerSelection = careerSelection;
-    await student.save();
-
-    res.status(200).json({ message: 'Career selection updated successfully', careerSelection });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Update location preference
-exports.updateLocationPreference = async (req, res) => {
-  const { locationPreference } = req.body;
-
-  try {
-    const student = await Student.findById(req.user.id);
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    student.locationPreference = locationPreference;
-    await student.save();
-
-    res.status(200).json({ message: 'Location preference updated successfully', locationPreference });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// Submit Aptitude Test Results
-exports.submitAptitudeTestResults = async (req, res) => {
-  const { verbal, quantitative, generalKnowledge } = req.body;
-
-  try {
-    const student = await Student.findById(req.user.id);
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    const totalScore = verbal + quantitative + generalKnowledge;
-
-    student.testResult = {
-      aptitude: {
-        verbal,
-        quantitative,
-        generalKnowledge,
-      },
-      totalScore,
-      completed: true,
-    };
-
-    await student.save();
-
-    res.status(200).json({
-      message: 'Test results submitted successfully',
-      testResult: student.testResult,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+// Export all controller functions
+module.exports = {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  updateUserProfile,
+  logoutUser,
 };
