@@ -12,31 +12,49 @@ const generateToken = (id) => {
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
-const registerUser = async (req, res, next) => {
+// Register a new user
+const registerUser = async (req, res) => {
    const { name, email, password, role } = req.body;
-
-   try {
-      // Check if the user already exists
-      const userExists = await User.findOne({ email });
-
-      if (userExists) {
-         return next(httpErrors(400, 'User already exists'));
-      }
-
-      // Create a new user
-      const user = await User.create({ name, email, password, role });
-
-      res.status(201).json({
-         _id: user._id,
-         name: user.name,
-         email: user.email,
-         role: user.role,
-         token: generateToken(user._id),
-      });
-   } catch (error) {
-      next(httpErrors(500, 'Server error'));
+ 
+   if (!name || !email || !password || !role) {
+     return res.status(400).json({ success: false, message: 'Please provide all required fields' });
    }
-};
+ 
+   try {
+     // Check if user already exists
+     const userExists = await User.findOne({ email });
+     if (userExists) {
+       return res.status(400).json({ success: false, message: 'User already exists' });
+     }
+ 
+     // Hash password
+     const salt = await bcrypt.genSalt(10);
+     const hashedPassword = await bcrypt.hash(password, salt);
+ 
+     // Create new user
+     const user = await User.create({
+       name,
+       email,
+       password: hashedPassword,
+       role
+     });
+ 
+     // Create and send token
+     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+ 
+     res.status(201).json({
+       success: true,
+       _id: user._id,
+       name: user.name,
+       email: user.email,
+       role: user.role,
+       token
+     });
+   } catch (error) {
+     console.error('Error in registerUser:', error);
+     res.status(500).json({ success: false, message: 'Server error' });
+   }
+ };
 
 // @desc    Login user
 // @route   POST /api/users/login

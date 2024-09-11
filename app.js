@@ -3,13 +3,13 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const { errorHandler } = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/errorHandler');
 const studentRoutes = require('./routes/studentRoutes');
 
 // Import routes
 // const authRoutes = require('./routes/authRoutes');
-const collegeRoutes = require('./routes/collegeRoutes');
-const testRoutes = require('./routes/testRoutes');
+// const collegeRoutes = require('./routes/collegeRoutes');
+// const testRoutes = require('./routes/testRoutes');
 
 // const adminRoutes = require('./routes/adminRoutes');
 // const userRoutes = require('./routes/userRoutes');
@@ -29,8 +29,8 @@ app.use(express.json());
 
 // Routes
 // app.use('/api/auth', authRoutes);
-app.use('/api/colleges', collegeRoutes);
-app.use('/api/tests', testRoutes);
+// app.use('/api/colleges', collegeRoutes);
+// app.use('/api/tests', testRoutes);
 // app.use('/api/students', studentRoutes);
 app.use('/api/users', studentRoutes);
 
