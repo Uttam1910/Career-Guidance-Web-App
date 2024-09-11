@@ -4,10 +4,10 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const { errorHandler } = require('./middleware/errorHandler');
-
+const studentRoutes = require('./routes/studentRoutes');
 
 // Import routes
-const authRoutes = require('./routes/authRoutes');
+// const authRoutes = require('./routes/authRoutes');
 const collegeRoutes = require('./routes/collegeRoutes');
 const testRoutes = require('./routes/testRoutes');
 
@@ -28,11 +28,10 @@ app.use(bodyParser.json());
 app.use(express.json());
 
 // Routes
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/tests', testRoutes);
-// app.use('/api/admin', adminRoutes);
-// app.use('/api/user', userRoutes);
+app.use('/api/students', studentRoutes);
 
 // Error handler middleware
 app.use(errorHandler);
