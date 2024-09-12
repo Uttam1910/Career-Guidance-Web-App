@@ -1,3 +1,4 @@
+// userSchema and User model
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');  // Optional: For additional validation
@@ -25,10 +26,9 @@ const userSchema = new mongoose.Schema({
    },
    role: {
       type: String,
-      enum: ['student', 'admin'],
+      enum: ['student', 'admin'],  // Ensure 'student' and 'admin' are used consistently
       default: 'student'
    },
-   // Additional fields for the future
    profilePicture: {
       type: String,
       trim: true
