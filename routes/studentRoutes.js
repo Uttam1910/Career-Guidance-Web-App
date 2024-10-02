@@ -1,21 +1,15 @@
+// routes/studentRoutes.js
 const express = require('express');
+const { registerStudent, loginStudent, getStudentProfile, updateStudentProfile } = require('../controllers/studentController');
+const { verifyToken } = require('../middlewares/authMiddleware');
 const router = express.Router();
-const { protect, admin } = require('../middleware/authMiddleware');
-const {
-  registerUser,
-  loginUser,
-  getUserProfile,
-  updateUserProfile,
-  logoutUser
-} = require('../controllers/studentController');
 
 // Public Routes
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/register', registerStudent);
+router.post('/login', loginStudent);
 
-// Private Routes
-router.get('/profile', protect, getUserProfile);
-router.put('/profile', protect, updateUserProfile);
-router.post('/logout', protect, logoutUser);
+// Protected Routes
+router.get('/profile', verifyToken, getStudentProfile);
+router.put('/profile', verifyToken, updateStudentProfile);
 
 module.exports = router;

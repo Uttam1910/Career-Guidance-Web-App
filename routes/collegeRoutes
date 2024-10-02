@@ -1,12 +1,16 @@
-// const express = require('express');
-// const { addCollege, getColleges } = require('../controllers/collegeController');
-// const router = express.Router();
-// const auth = require('../middleware/auth'); // Auth middleware to protect routes
+// routes/collegeRoutes.js
+const express = require('express');
+const { getColleges, getCollegeById, createCollege, updateCollege, deleteCollege } = require('../controllers/collegeController');
+const { verifyToken, adminCheck } = require('../middlewares/authMiddleware');
+const router = express.Router();
 
-// // Add a new college (protected route)
-// router.post('/add', auth, addCollege);
+// Public Routes
+router.get('/', getColleges);
+router.get('/:id', getCollegeById);
 
-// // Get a list of colleges (open to all)
-// router.get('/', getColleges);
+// Admin Routes
+router.post('/', verifyToken, adminCheck, createCollege);
+router.put('/:id', verifyToken, adminCheck, updateCollege);
+router.delete('/:id', verifyToken, adminCheck, deleteCollege);
 
-// module.exports = router;
+module.exports = router;

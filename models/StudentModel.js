@@ -1,62 +1,90 @@
-// userSchema and User model
+// models/Student.js
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const validator = require('validator');  // Optional: For additional validation
+const { Schema } = mongoose;
 
-// User Schema
-const userSchema = new mongoose.Schema({
-   name: {
+const studentSchema = new Schema({
+  name: {
+    type: String,
+    required: [true, 'Student name is required'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters long'],
+    maxlength: [100, 'Name cannot exceed 100 characters'],
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true, // Ensure that each email is unique
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please provide a valid email address',
+    ],
+  },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters long'],
+  },
+  phoneNumber: {
+    type: String,
+    match: [
+      /^\d{10}$/,
+      'Phone number must be exactly 10 digits',
+    ],
+    required: [true, 'Phone number is required'],
+  },
+  CGPA: {
+    type: Number,
+    required: [true, 'CGPA is required'],
+    min: [0, 'CGPA cannot be less than 0'],
+    max: [10, 'CGPA cannot be more than 10'],
+  },
+  entranceExamScore: {
+    type: Number,
+    required: [true, 'Entrance exam score is required'],
+    min: [0, 'Score cannot be less than 0'],
+    max: [100, 'Score cannot be more than 100'],
+  },
+  dateOfBirth: {
+    type: Date,
+    required: [true, 'Date of birth is required'],
+    validate: {
+      validator: function (value) {
+        return value <= new Date();
+      },
+      message: 'Date of birth cannot be in the future',
+    },
+  },
+  address: {
+    street: {
       type: String,
-      required: [true, 'Name is required'],
-      trim: true,
-      maxlength: [100, 'Name cannot exceed 100 characters']
-   },
-   email: {
+      required: [true, 'Street address is required'],
+    },
+    city: {
       type: String,
-      required: [true, 'Email is required'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      validate: [validator.isEmail, 'Please enter a valid email']
-   },
-   password: {
+      required: [true, 'City is required'],
+    },
+    state: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters long']
-   },
-   role: {
+      required: [true, 'State is required'],
+    },
+    country: {
       type: String,
-      enum: ['student', 'admin'],  // Ensure 'student' and 'admin' are used consistently
-      default: 'student'
-   },
-   profilePicture: {
+      required: [true, 'Country is required'],
+    },
+    postalCode: {
       type: String,
-      trim: true
-   },
-   createdAt: {
-      type: Date,
-      default: Date.now
-   }
+      required: [true, 'Postal code is required'],
+      match: [/^\d{5}(-\d{4})?$/, 'Invalid postal code format'],
+    },
+  },
+  coursePreferences: {
+    type: [String], // List of preferred courses (e.g., 'Engineering', 'Management')
+    default: [],
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now, // Automatically set the created date
+  },
 });
 
-// Hash password before saving the user
-userSchema.pre('save', async function(next) {
-   if (!this.isModified('password')) return next();
-   
-   try {
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(this.password, salt);
-      next();
-   } catch (error) {
-      next(error);
-   }
-});
-
-// Compare password
-userSchema.methods.matchPassword = async function(enteredPassword) {
-   return await bcrypt.compare(enteredPassword, this.password);
-};
-
-// Create and export the User model
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+module.exports = mongoose.model('Student', studentSchema);

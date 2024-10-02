@@ -1,40 +1,96 @@
-// const College = require('../models/College');
+// controllers/collegeController.js
+const College = require('../models/College');
 
-// // Add a new college
-// exports.addCollege = async (req, res) => {
-//   const { name, location, eligibility, fees } = req.body;
+// Get all colleges
+exports.getColleges = async (req, res) => {
+  const { CGPA, entranceExamScore, location } = req.query;
 
-//   try {
-//     const college = new College({
-//       name,
-//       location,
-//       eligibility,
-//       fees,
-//     });
+  try {
+    // Create a query object to filter results
+    let query = {};
 
-//     await college.save();
-//     res.status(201).json({ message: 'College added successfully', college });
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
+    // Filter by CGPA and entrance exam score
+    if (CGPA) query.eligibilityCGPA = { $lte: CGPA };
+    if (entranceExamScore) query.entranceExamScoreRequired = { $lte: entranceExamScore };
 
-// // Get all colleges (with optional filters)
-// exports.getColleges = async (req, res) => {
-//   const { location, eligibility, minFees, maxFees } = req.query;
-//   let filter = {};
+    // Filter by location if provided
+    if (location) query['location.city'] = location;
 
-//   // Apply filters if provided
-//   if (location) filter.location = location;
-//   if (eligibility) filter.eligibility = eligibility;
-//   if (minFees && maxFees) {
-//     filter.fees = { $gte: minFees, $lte: maxFees };
-//   }
+    const colleges = await College.find(query);
+    res.status(200).json(colleges);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
 
-//   try {
-//     const colleges = await College.find(filter);
-//     res.json(colleges);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
+// Get a specific college by ID
+exports.getCollegeById = async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+    res.status(200).json(college);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Add a new college (admin only)
+exports.createCollege = async (req, res) => {
+  const { name, tuitionFee, location, eligibilityCGPA, entranceExamScoreRequired, coursesOffered, ranking, scholarshipAvailable, housingAvailable, campusFacilities } = req.body;
+
+  try {
+    const college = new College({
+      name,
+      tuitionFee,
+      location,
+      eligibilityCGPA,
+      entranceExamScoreRequired,
+      coursesOffered,
+      ranking,
+      scholarshipAvailable,
+      housingAvailable,
+      campusFacilities,
+    });
+
+    await college.save();
+    res.status(201).json({ message: 'College created successfully', college });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Update college information (admin only)
+exports.updateCollege = async (req, res) => {
+  const { name, tuitionFee, location, eligibilityCGPA, entranceExamScoreRequired, coursesOffered, ranking, scholarshipAvailable, housingAvailable, campusFacilities } = req.body;
+
+  try {
+    const updatedCollege = await College.findByIdAndUpdate(
+      req.params.id,
+      { name, tuitionFee, location, eligibilityCGPA, entranceExamScoreRequired, coursesOffered, ranking, scholarshipAvailable, housingAvailable, campusFacilities },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCollege) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+
+    res.status(200).json({ message: 'College updated successfully', updatedCollege });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Delete a college (admin only)
+exports.deleteCollege = async (req, res) => {
+  try {
+    const college = await College.findByIdAndDelete(req.params.id);
+    if (!college) {
+      return res.status(404).json({ message: 'College not found' });
+    }
+    res.status(200).json({ message: 'College deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
